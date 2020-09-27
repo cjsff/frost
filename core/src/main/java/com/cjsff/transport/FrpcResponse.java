@@ -3,7 +3,7 @@ package com.cjsff.transport;
 /**
  * @author cjsff
  */
-public class FrpcResponse {
+public class FrpcResponse extends Packet{
 
     private String id;
     private String result;

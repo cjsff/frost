@@ -3,7 +3,7 @@ package com.cjsff.transport;
 /**
  * @author cjsff
  */
-public class FrpcRequest {
+public class FrpcRequest extends Packet{
     /**
      * 请求id
      */

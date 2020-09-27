@@ -2,6 +2,9 @@ package com.cjsff.client;
 
 import com.cjsff.client.handler.FrpcClientHandler;
 import com.cjsff.client.pool.FrpcPooledChannel;
+import com.cjsff.transport.codec.PacketDecoder;
+import com.cjsff.transport.codec.PacketEncoder;
+import com.cjsff.transport.codec.Spliter;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.epoll.Epoll;
@@ -66,10 +69,12 @@ public class FrpcClient {
         if (Epoll.isAvailable()) {
             work = new EpollEventLoopGroup(frpcClientOption.getNettyWorkThreadNum());
             bootstrap.channel(EpollSocketChannel.class);
+            bootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000);
             log.info("use epoll edge trigger mode");
         } else {
             work = new NioEventLoopGroup(frpcClientOption.getNettyWorkThreadNum());
             bootstrap.channel(NioSocketChannel.class);
+            bootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000);
             log.info("use normal mode");
         }
         bootstrap.group(work);
@@ -81,7 +86,10 @@ public class FrpcClient {
             @Override
             protected void initChannel(SocketChannel ch) throws Exception {
                 // 绑定客户端处理器
+                ch.pipeline().addLast(new Spliter());
+                ch.pipeline().addLast(new PacketDecoder());
                 ch.pipeline().addLast(new FrpcClientHandler());
+                ch.pipeline().addLast(new PacketEncoder());
             }
         });
 

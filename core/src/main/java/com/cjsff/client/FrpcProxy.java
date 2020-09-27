@@ -51,7 +51,8 @@ public class FrpcProxy implements MethodInterceptor {
         FrpcClientHandler handler = new FrpcClientHandler();
         // 客户端请求服务端
         FrpcFuture frpcFuture = handler.send(request,frpcPooledChannel);
-
-        return frpcFuture.get();
+        Object o = frpcFuture.get();
+        System.out.println("result=" + o + ",requestId=" + requestId);
+        return o;
     }
 }

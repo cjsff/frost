@@ -5,6 +5,8 @@ package com.cjsff.transport;
  */
 public interface Serialization {
 
+
+
     /**
      * java to binary
      *
@@ -23,4 +25,5 @@ public interface Serialization {
      */
     <T> T deserialize(byte[] bytes, Class<T> clazz);
 
+    byte getSerializationAlgorithm();
 }

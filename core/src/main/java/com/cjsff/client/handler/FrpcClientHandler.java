@@ -2,10 +2,7 @@ package com.cjsff.client.handler;
 
 import com.cjsff.client.FrpcFuture;
 import com.cjsff.client.pool.FrpcPooledChannel;
-import com.cjsff.transport.FrpcRequest;
-import com.cjsff.transport.FrpcResponse;
-import com.cjsff.transport.JsonSerializer;
-import com.cjsff.transport.Serialization;
+import com.cjsff.transport.*;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -24,13 +21,15 @@ public class FrpcClientHandler extends SimpleChannelInboundHandler<Object> {
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
 
+//        PacketCodeC packetCodeC = PacketCodeC.INSTANCE;
         // 客户端解析响应
-        ByteBuf buf = (ByteBuf) msg;
-        byte[] bytes = new byte[buf.readableBytes()];
-        buf.readBytes(bytes);
-
-        Serialization jsonSerializer = new JsonSerializer();
-        FrpcResponse response = jsonSerializer.deserialize(bytes, FrpcResponse.class);
+//        ByteBuf buf = (ByteBuf) msg;
+        FrpcResponse response = (FrpcResponse) msg;
+//        byte[] bytes = new byte[buf.readableBytes()];
+//        buf.readBytes(bytes);
+//
+//        Serialization jsonSerializer = new JsonSerializer();
+//        FrpcResponse response = jsonSerializer.deserialize(bytes, FrpcResponse.class);
 
         // 拿出请求id,查询ConcurrentHashMap中是否存在这条请求
         String requestId = response.getId();
@@ -52,16 +51,18 @@ public class FrpcClientHandler extends SimpleChannelInboundHandler<Object> {
         pendingRpc.put(request.getId(), frpcFuture);
 
         // 请求序列化
-        Serialization json = new JsonSerializer();
-        byte[] bytes = json.serialize(request);
+//        Serialization json = new JsonSerializer();
+//        byte[] bytes = json.serialize(request);
 
         // 连接池获取Channel
         Channel channel = frpcPooledChannel.getChannel();
 
         // 初始化ByteBuf并写进请求数据发送到服务端
         ByteBuf buf = channel.alloc().ioBuffer();
-        System.out.println("request message is : " + Arrays.toString(bytes));
-        buf.writeBytes(bytes);
+//        System.out.println("request message is : " + Arrays.toString(bytes));
+//        buf.writeBytes(bytes);
+        PacketCodeC instance = PacketCodeC.INSTANCE;
+        instance.encode(buf,request);
         channel.writeAndFlush(buf);
 
         // 返回Channel到连接池

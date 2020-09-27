@@ -3,6 +3,8 @@ package com.cjsff.server;
 import com.cjsff.registry.ServerRegisterDiscovery;
 import com.cjsff.registry.ZookeeperService;
 import com.cjsff.server.handler.FrpcServerHandler;
+import com.cjsff.transport.codec.PacketCodecHandler;
+import com.cjsff.transport.codec.Spliter;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
@@ -76,6 +78,8 @@ public class FrpcServer {
             @Override
             protected void initChannel(SocketChannel ch) throws Exception {
                 // 绑定服务端处理器
+                ch.pipeline().addLast(new Spliter());
+                ch.pipeline().addLast(PacketCodecHandler.INSTANCE);
                 ch.pipeline().addLast(new FrpcServerHandler());
             }
         });

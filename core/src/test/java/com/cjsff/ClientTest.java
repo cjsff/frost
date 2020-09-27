@@ -5,6 +5,8 @@ import com.cjsff.client.FrpcClientOption;
 import com.cjsff.client.FrpcProxy;
 import com.cjsff.service.SayHelloService;
 import com.cjsff.service.impl.SayHelloServiceImpl;
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.Channel;
 
 import java.net.InetSocketAddress;
 
@@ -16,13 +18,14 @@ public class ClientTest {
     long startTime = System.currentTimeMillis();
     int requestNum = 10;
     SayHelloService sayHelloService = FrpcProxy.getProxy(SayHelloServiceImpl.class, client);
-    String cjsff = sayHelloService.sayHello("cjsff");
+    String cjsff = sayHelloService.sayHello("hello");
     System.out.println(cjsff);
 
-    Thread[] threads = new Thread[100];
+    Thread[] threads = new Thread[10];
 
     for (int i = 0; i < threads.length; i++) {
       threads[i] = new Thread(new ThreadTask(sayHelloService));
+      System.out.println(threads[i].getId());
       threads[i].start();
     }
 
@@ -44,7 +47,7 @@ public class ClientTest {
 
     public void run() {
 
-      sayHelloService.sayHello("john");
+      sayHelloService.sayHello(Thread.currentThread().getId() + "cjsff");
     }
 
   }
