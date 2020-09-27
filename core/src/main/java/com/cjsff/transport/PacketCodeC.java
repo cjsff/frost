@@ -16,7 +16,7 @@ import java.util.Map;
  */
 public class PacketCodeC {
 
-  public static final int MAGIC_NUMBER = 0x12345678;
+  public static final int MAGIC_NUMBER = 0X9527;
 
   private static final byte REQUEST_PACKET_TYPE = 1;
 
