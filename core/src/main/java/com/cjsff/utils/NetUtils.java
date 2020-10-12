@@ -8,7 +8,7 @@ import java.net.SocketException;
 import java.util.Enumeration;
 
 /**
- * @author cjsff
+ * @author rick
  */
 public class NetUtils {
 
@@ -19,14 +19,13 @@ public class NetUtils {
 
     @SuppressWarnings("rawtypes")
     public static String getHostAddress() {
-        // 本地IP，如果没有配置外网IP则返回它
+        // Local IP, if internet IP is not configured, return it
         String local = null;
-        // 外网IP
+        // internet IP
         String net = null;
         try {
             Enumeration netInterfaces = NetworkInterface.getNetworkInterfaces();
-            InetAddress ip = null;
-            // 是否找到外网IP
+            InetAddress ip;
             boolean isNet = false;
             while (netInterfaces.hasMoreElements() && !isNet) {
                 NetworkInterface ni = (NetworkInterface) netInterfaces.nextElement();
@@ -34,13 +33,11 @@ public class NetUtils {
                 while (address.hasMoreElements()) {
                     ip = (InetAddress) address.nextElement();
                     if (!ip.isSiteLocalAddress() && !ip.isLoopbackAddress() && !ip.getHostAddress().contains(":")) {
-                        // 外网IP
                         net = ip.getHostAddress();
                         isNet = true;
                         break;
                     } else if (ip.isSiteLocalAddress() && !ip.isLoopbackAddress() && !ip.getHostAddress().contains(
                             ":")) {
-                        // 内网IP
                         local = ip.getHostAddress();
                     }
                 }

@@ -1,11 +1,14 @@
-package com.cjsff.transport;
+package com.cjsff.serialization.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.cjsff.serialization.Serialization;
 
 /**
- * @author cjsff
+ * @author rick
  */
-public class JsonSerializer implements Serialization {
+public class FastJsonSerializer implements Serialization {
+
+    private static final byte FAST_JSON_SERIALIZER_TYPE = 1;
 
     @Override
     public byte[] serialize(Object o) {
@@ -19,6 +22,6 @@ public class JsonSerializer implements Serialization {
 
     @Override
     public byte getSerializationAlgorithm() {
-        return SerializationConstant.JSON;
+        return FAST_JSON_SERIALIZER_TYPE;
     }
 }

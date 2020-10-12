@@ -2,8 +2,8 @@ package com.cjsff.client;
 
 import com.cjsff.client.handler.FrpcClientHandler;
 import com.cjsff.client.pool.FrpcPooledChannel;
-import com.cjsff.transport.codec.PacketDecoder;
-import com.cjsff.transport.codec.PacketEncoder;
+import com.cjsff.spi.SerializationSpiManager;
+import com.cjsff.transport.codec.PacketCodecHandler;
 import com.cjsff.transport.codec.Spliter;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 import java.net.InetSocketAddress;
 
 /**
- * @author cjsff
+ * @author rick
  */
 public class FrpcClient {
 
@@ -49,7 +49,6 @@ public class FrpcClient {
 
     public FrpcClient(InetSocketAddress serverAddress, FrpcClientOption option, String zkAddress) {
 
-        // 判断直接使用服务端地址，还是从zookeeper中取
         if (serverAddress != null) {
             log.info("serverAddress is :" + serverAddress);
             frpcPooledChannel = new FrpcPooledChannel(serverAddress, this);
@@ -57,7 +56,6 @@ public class FrpcClient {
             frpcPooledChannel = new FrpcPooledChannel(zkAddress, this);
         }
 
-        // 判断用户是否设置自定义客户端相关配置
         if (option != null) {
             BeanCopier copier = BeanCopier.create(FrpcClientOption.class, FrpcClientOption.class, false);
             copier.copy(option, frpcClientOption, null);
@@ -65,34 +63,31 @@ public class FrpcClient {
 
         EventLoopGroup work;
         bootstrap = new Bootstrap();
-        // 选择IO模型
+
         if (Epoll.isAvailable()) {
-            work = new EpollEventLoopGroup(frpcClientOption.getNettyWorkThreadNum());
+            work = new EpollEventLoopGroup(1);
             bootstrap.channel(EpollSocketChannel.class);
             bootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000);
             log.info("use epoll edge trigger mode");
         } else {
-            work = new NioEventLoopGroup(frpcClientOption.getNettyWorkThreadNum());
+            work = new NioEventLoopGroup(1);
             bootstrap.channel(NioSocketChannel.class);
             bootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000);
             log.info("use normal mode");
         }
         bootstrap.group(work);
-        // 配置TPC相关参数
         bootstrap.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, frpcClientOption.getConnectTimeOutMillis());
         bootstrap.option(ChannelOption.SO_KEEPALIVE, frpcClientOption.isKeepAlive());
         bootstrap.option(ChannelOption.TCP_NODELAY, frpcClientOption.isNoDelay());
         bootstrap.handler(new ChannelInitializer<SocketChannel>() {
             @Override
             protected void initChannel(SocketChannel ch) throws Exception {
-                // 绑定客户端处理器
                 ch.pipeline().addLast(new Spliter());
-                ch.pipeline().addLast(new PacketDecoder());
+                ch.pipeline().addLast(PacketCodecHandler.INSTANCE);
                 ch.pipeline().addLast(new FrpcClientHandler());
-                ch.pipeline().addLast(new PacketEncoder());
             }
         });
-
+        SerializationSpiManager.getInstance().loadSerialization();
     }
 
     public Channel getConnect(InetSocketAddress serverAddress) throws InterruptedException {

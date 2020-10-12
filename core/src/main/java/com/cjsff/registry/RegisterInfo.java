@@ -1,34 +1,17 @@
 package com.cjsff.registry;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+
 /**
- * @author cjsff
+ * @author rick
  */
+@AllArgsConstructor
+@Setter
+@Getter
 public class RegisterInfo {
 
     private String host;
     private int port;
-
-    public RegisterInfo() {
-    }
-
-    public RegisterInfo(String host, int port) {
-        this.host = host;
-        this.port = port;
-    }
-
-    public String getHost() {
-        return host;
-    }
-
-    public void setHost(String host) {
-        this.host = host;
-    }
-
-    public int getPort() {
-        return port;
-    }
-
-    public void setPort(int port) {
-        this.port = port;
-    }
 }

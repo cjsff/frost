@@ -3,6 +3,7 @@ package com.cjsff.server;
 import com.cjsff.registry.ServerRegisterDiscovery;
 import com.cjsff.registry.ZookeeperService;
 import com.cjsff.server.handler.FrpcServerHandler;
+import com.cjsff.spi.SerializationSpiManager;
 import com.cjsff.transport.codec.PacketCodecHandler;
 import com.cjsff.transport.codec.Spliter;
 import io.netty.bootstrap.ServerBootstrap;
@@ -20,12 +21,26 @@ import net.sf.cglib.beans.BeanCopier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
- * @author cjsff
+ * @author rick
  */
 public class FrpcServer {
 
     private static final Logger log = LoggerFactory.getLogger(FrpcServer.class);
+
+    private Map<String, Object> serviceMap = new HashMap<>();
+
+
+    public void addService(String serviceName, Object o) {
+        serviceMap.put(serviceName, o);
+    }
+
+    public Map<String,Object> getServiceMap() {
+        return serviceMap;
+    }
 
     private FrpcServerOption frpcServerOption = new FrpcServerOption();
 
@@ -37,28 +52,28 @@ public class FrpcServer {
         this(port, zkAddress,null);
     }
 
+    private final EventLoopGroup boss;
+    private final EventLoopGroup work;
+
     public FrpcServer(int port, String zkAddress,FrpcServerOption option) throws InterruptedException {
 
-        // 判断用户是否设置自定义服务端相关配置
         if (option != null) {
             BeanCopier copier = BeanCopier.create(FrpcServerOption.class, FrpcServerOption.class, false);
             copier.copy(option, frpcServerOption, null);
         }
 
-        EventLoopGroup boss;
-        EventLoopGroup work;
         ServerBootstrap serverBootstrap = new ServerBootstrap();
-        // 选择IO模型
+        // choose IO model
         if (Epoll.isAvailable()) {
-            boss = new EpollEventLoopGroup(frpcServerOption.getNettyBossThreadNum());
-            work = new EpollEventLoopGroup(frpcServerOption.getNettyWorkThreadNum());
+            boss = new EpollEventLoopGroup(1);
+            work = new EpollEventLoopGroup(1);
             serverBootstrap.channel(EpollServerSocketChannel.class);
             serverBootstrap.option(EpollChannelOption.EPOLL_MODE, EpollMode.EDGE_TRIGGERED);
             serverBootstrap.childOption(EpollChannelOption.EPOLL_MODE, EpollMode.EDGE_TRIGGERED);
             log.info("use epoll edge trigger model.");
         } else {
-            boss = new NioEventLoopGroup(frpcServerOption.getNettyBossThreadNum());
-            work = new NioEventLoopGroup(frpcServerOption.getNettyWorkThreadNum());
+            boss = new NioEventLoopGroup(1);
+            work = new NioEventLoopGroup(1);
             serverBootstrap.channel(NioServerSocketChannel.class);
             log.info("use normal model.");
         }
@@ -77,18 +92,15 @@ public class FrpcServer {
         serverBootstrap.childHandler(new ChannelInitializer<SocketChannel>() {
             @Override
             protected void initChannel(SocketChannel ch) throws Exception {
-                // 绑定服务端处理器
                 ch.pipeline().addLast(new Spliter());
                 ch.pipeline().addLast(PacketCodecHandler.INSTANCE);
                 ch.pipeline().addLast(new FrpcServerHandler());
             }
         });
 
-        // 绑定端口
         serverBootstrap.bind(port).sync().addListener(future -> {
             if (future.isSuccess()) {
                 log.info("server bind port is success");
-                // 端口绑定成功后，判断用户是否要把服务注册到zookeeper
                 if (zkAddress != null) {
                     ServerRegisterDiscovery serverRegisterDiscovery = new ZookeeperService(zkAddress);
                     serverRegisterDiscovery.register(port);
@@ -96,5 +108,11 @@ public class FrpcServer {
             }
         });
 
+        SerializationSpiManager.getInstance().loadSerialization();
+    }
+
+    public void stop() {
+        boss.shutdownGracefully();
+        work.shutdownGracefully();
     }
 }

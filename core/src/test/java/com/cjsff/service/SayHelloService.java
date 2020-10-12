@@ -1,10 +1,12 @@
 package com.cjsff.service;
 
+import java.util.List;
+
 /**
- * @author cjsff
+ * @author rick
  */
 public interface SayHelloService {
 
-    public String sayHello(String name);
+    public List<String> sayHello(List<String> name);
 
 }

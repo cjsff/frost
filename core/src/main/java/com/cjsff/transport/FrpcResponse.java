@@ -1,49 +1,19 @@
 package com.cjsff.transport;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 /**
- * @author cjsff
+ * @author rick
  */
-public class FrpcResponse extends Packet{
-
+@AllArgsConstructor
+@Setter
+@Getter
+@NoArgsConstructor
+public class FrpcResponse<T> extends BasePacket {
     private String id;
-    private String result;
+    private T result;
     private String error;
-
-    public FrpcResponse() {
-    }
-
-    public FrpcResponse(String id, String result, String error) {
-        this.id = id;
-        this.result = result;
-        this.error = error;
-    }
-
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getResult() {
-        return result;
-    }
-
-    public void setResult(String result) {
-        this.result = result;
-    }
-
-    public String getError() {
-        return error;
-    }
-
-    public void setError(String error) {
-        this.error = error;
-    }
-
-    public boolean isError() {
-        return error != null;
-    }
 }

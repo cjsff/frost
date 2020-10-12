@@ -5,7 +5,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import java.util.concurrent.*;
 
 /**
- * @author cjsff
+ * @author rick
  */
 class ClientWorkTask {
 

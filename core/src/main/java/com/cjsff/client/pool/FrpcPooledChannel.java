@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 import java.net.InetSocketAddress;
 
 /**
- * @author cjsff
+ * @author rick
  */
 public class FrpcPooledChannel implements FrpcConnectionPool {
 

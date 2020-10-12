@@ -5,56 +5,69 @@ import com.cjsff.client.pool.FrpcPooledChannel;
 import com.cjsff.transport.*;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CompletableFuture;
 
 /**
- * @author cjsff
+ * Client request sending, response processing
+ * @author rick
  */
 public class FrpcClientHandler extends SimpleChannelInboundHandler<Object> {
 
-  private static ConcurrentHashMap<String, FrpcFuture> pendingRpc = new ConcurrentHashMap<>();
+  private final FrpcFuture frpcFuture;
+
+  public FrpcClientHandler() {
+    frpcFuture = FrpcFuture.getInstance();
+  }
 
   @Override
   protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
 
-    FrpcResponse response = (FrpcResponse) msg;
+    FrpcResponse<Object> response = (FrpcResponse<Object>) msg;
 
-    // 拿出请求id,查询ConcurrentHashMap中是否存在这条请求
-    String requestId = response.getId();
-    FrpcFuture frpcFuture = pendingRpc.get(requestId);
-    if (frpcFuture != null) {
-      pendingRpc.remove(requestId);
-      // 把响应装进异步请求
-      frpcFuture.done(response);
-    }
+    frpcFuture.complete(response);
 
   }
 
-  public FrpcFuture send(FrpcRequest request, FrpcPooledChannel frpcPooledChannel) throws Exception {
+  public CompletableFuture<FrpcResponse<Object>> send(FrpcRequest request, FrpcPooledChannel frpcPooledChannel) throws Exception {
 
-    // 组装异步请求
-    FrpcFuture frpcFuture = new FrpcFuture(request);
+    // initiate asynchronous request
+    CompletableFuture<FrpcResponse<Object>> completableFuture = new CompletableFuture<>();
 
-    // 把异步请求装进ConcurrentHashMap
-    pendingRpc.put(request.getId(), frpcFuture);
+    // put the asynchronous request into the pending request container
+    frpcFuture.put(request.getId(), completableFuture);
 
-    // 连接池获取Channel
+    // connection pool to obtain netty channel
     Channel channel = frpcPooledChannel.getChannel();
 
-    // 初始化ByteBuf并写进请求数据发送到服务端
     ByteBuf buf = channel.alloc().ioBuffer();
     PacketCodeC instance = PacketCodeC.INSTANCE;
-    instance.encode(buf, request);
-    channel.writeAndFlush(buf);
 
-    // 返回Channel到连接池
+    // request data serialization,encoding and writing to ByteBuf
+    instance.encode(buf, request);
+    if (channel.isActive()) {
+      channel.writeAndFlush(buf).addListener((ChannelFutureListener) channelFuture -> {
+        if (channelFuture.isSuccess()) {
+          // request sent successfully
+        } else {
+
+          channelFuture.channel().close();
+          completableFuture.completeExceptionally(channelFuture.cause());
+        }
+      });
+    } else {
+      throw new RuntimeException("netty channel has bean closed");
+    }
+
+
+    // return netty channel to the connection pool
     frpcPooledChannel.returnChannel(channel);
 
-    // 返回异步请求, 服务端返回之前一直阻塞等待结果
-    return frpcFuture;
+    // return asynchronous result,wait for server response
+    return completableFuture;
   }
 
 }

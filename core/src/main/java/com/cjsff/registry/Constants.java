@@ -1,7 +1,7 @@
 package com.cjsff.registry;
 
 /**
- * @author cjsff
+ * @author rick
  */
 public class Constants {
 

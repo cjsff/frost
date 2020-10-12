@@ -1,6 +1,6 @@
 package com.cjsff.transport.codec;
 
-import com.cjsff.transport.Packet;
+import com.cjsff.transport.BasePacket;
 import com.cjsff.transport.PacketCodeC;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler;
@@ -13,7 +13,7 @@ import java.util.List;
  * @author rick
  */
 @ChannelHandler.Sharable
-public class PacketCodecHandler extends MessageToMessageCodec<ByteBuf, Packet> {
+public class PacketCodecHandler extends MessageToMessageCodec<ByteBuf, BasePacket> {
     public static final PacketCodecHandler INSTANCE = new PacketCodecHandler();
 
     private PacketCodecHandler() {
@@ -26,7 +26,7 @@ public class PacketCodecHandler extends MessageToMessageCodec<ByteBuf, Packet> {
     }
 
     @Override
-    protected void encode(ChannelHandlerContext ctx, Packet packet, List<Object> out) {
+    protected void encode(ChannelHandlerContext ctx, BasePacket packet, List<Object> out) {
         ByteBuf byteBuf = ctx.channel().alloc().ioBuffer();
         PacketCodeC.INSTANCE.encode(byteBuf, packet);
         out.add(byteBuf);

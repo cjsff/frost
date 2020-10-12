@@ -1,34 +1,40 @@
 package com.cjsff.server.handler;
 
+import com.cjsff.server.ServiceMap;
 import com.cjsff.transport.*;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Method;
+import java.util.Map;
 
 /**
- * @author cjsff
+ * @author rick
  */
+@Slf4j
 public class FrpcServerHandler extends SimpleChannelInboundHandler<Object> {
 
   @Override
   protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
     FrpcRequest request = (FrpcRequest) msg;
 
-    // 反射执行请求中要调用的接口
-    Object clazz = Class.forName(request.getClassName()).newInstance();
-    Method method = clazz.getClass().getMethod(request.getMethodName(), request.getParamTypes());
-    Object result = method.invoke(clazz, request.getParams());
+    ServiceMap serviceMap = ServiceMap.getInstance();
+    Map<String, Object> objectMap = serviceMap.getObjectMap();
 
-    // 把结果组装发送到客户端
-    FrpcResponse response = new FrpcResponse();
+    Object o = objectMap.get(request.getClassName());
+
+    Object instance = o.getClass().newInstance();
+    Method method = instance.getClass().getMethod(request.getMethodName(), request.getParamTypes());
+    Object result = method.invoke(instance, request.getParams());
+
+    FrpcResponse<Object> response = new FrpcResponse<>();
     response.setId(request.getId());
-    response.setResult(result.toString());
-
+    response.setResult(result);
     ByteBuf out = ctx.alloc().ioBuffer();
-    PacketCodeC instance = PacketCodeC.INSTANCE;
-    instance.encode(out, response);
+    PacketCodeC packetCodeC = PacketCodeC.INSTANCE;
+    packetCodeC.encode(out, response);
     ctx.channel().writeAndFlush(out);
   }
 

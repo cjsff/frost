@@ -3,7 +3,7 @@ package com.cjsff.client.pool;
 import io.netty.channel.Channel;
 
 /**
- * @author cjsff
+ * @author rick
  */
 public interface FrpcConnectionPool {
 

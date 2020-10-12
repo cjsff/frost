@@ -1,5 +1,6 @@
 package com.cjsff.transport;
 
+import com.cjsff.serialization.Serialization;
 import io.netty.buffer.ByteBuf;
 
 import java.util.HashMap;
@@ -8,8 +9,8 @@ import java.util.Map;
 /**
  * protocol format:
  * <p>
- * | magic_number | protocol_version | serialization_algorithm | packet_type |data_length | data |
- * |      4       |         1        |            1            |      1      |     4      |      |
+ * | magic_number | protocol_version | packet_type |data_length |     data        |
+ * |      4       |         1        |      1      |     4      |  data_length    |
  * <p>
  *
  * @author rick
@@ -24,21 +25,15 @@ public class PacketCodeC {
 
   public static final PacketCodeC INSTANCE = new PacketCodeC();
 
-  private final Map<Byte, Serialization> serializationMap;
-
-  private final Map<Byte, Class<? extends Packet>> packetTypeMap;
+  private final Map<Byte, Class<? extends BasePacket>> packetTypeMap;
 
   private PacketCodeC() {
     packetTypeMap = new HashMap<>();
     packetTypeMap.put(REQUEST_PACKET_TYPE, FrpcRequest.class);
     packetTypeMap.put(RESPONSE_PACKET_TYPE, FrpcResponse.class);
-
-    serializationMap = new HashMap<>();
-    Serialization serialization = new JsonSerializer();
-    serializationMap.put(serialization.getSerializationAlgorithm(), serialization);
   }
 
-  public void encode(ByteBuf byteBuf, Packet packet) {
+  public void encode(ByteBuf byteBuf, BasePacket packet) {
     byte packetType = -1;
     if (packet instanceof FrpcRequest) {
       packetType = REQUEST_PACKET_TYPE;
@@ -48,39 +43,39 @@ public class PacketCodeC {
 
     byteBuf.writeInt(MAGIC_NUMBER);
     byteBuf.writeByte(packet.getVersion());
-    byteBuf.writeByte(SerializationConstant.JSON);
+
+    SerializationManager serializationManager = SerializationManager.getInstance();
+
     byteBuf.writeByte(packetType);
 
-    // serialization java object
-    byte[] bytes = serializationMap.get(SerializationConstant.JSON).serialize(packet);
+    byte[] bytes = serializationManager.getSerialization().serialize(packet);
     byteBuf.writeInt(bytes.length);
     byteBuf.writeBytes(bytes);
   }
 
 
-  public Packet decode(ByteBuf byteBuf) {
-    // 跳过 magic number
+  public BasePacket decode(ByteBuf byteBuf) {
+    // skip magic number
     byteBuf.skipBytes(4);
 
-    // 跳过版本号
+    // skip version number
     byteBuf.skipBytes(1);
-
-    // 序列化算法
-    byte serializeAlgorithm = byteBuf.readByte();
 
     // packet type
     byte packetType = byteBuf.readByte();
 
-    // 数据包长度
+    // packet length
     int length = byteBuf.readInt();
 
     byte[] bytes = new byte[length];
     byteBuf.readBytes(bytes);
 
-    Serialization serialization = serializationMap.get(serializeAlgorithm);
+    SerializationManager serializationManager = SerializationManager.getInstance();
+
+    Serialization serialization = serializationManager.getSerialization();
 
     if (serialization != null) {
-      return serialization.deserialize(bytes,packetTypeMap.get(packetType));
+      return serialization.deserialize(bytes, packetTypeMap.get(packetType));
     }
 
     return null;

@@ -2,7 +2,7 @@ package com.cjsff.registry;
 
 
 /**
- * @author cjsff
+ * @author rick
  */
 public interface ServerRegisterDiscovery {
 

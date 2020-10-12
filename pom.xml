@@ -10,6 +10,11 @@
     <version>0.0.1-SNAPSHOT</version>
     <modules>
         <module>core</module>
+        <module>frost-serialization</module>
+        <module>frost-common</module>
+        <module>frost-registry</module>
+        <module>frost-spring-boot-starter</module>
+        <module>frost-example</module>
     </modules>
 
     <properties>

@@ -9,7 +9,7 @@ import org.apache.commons.pool2.impl.DefaultPooledObject;
 import java.net.InetSocketAddress;
 
 /**
- * @author cjsff
+ * @author rick
  */
 public class ChannelPoolFactory extends BasePooledObjectFactory<Channel> {
 

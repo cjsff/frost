@@ -8,13 +8,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * @author cjsff
+ * @author rick
  */
 public class ZookeeperService implements ServerRegisterDiscovery {
 
     private static final Logger log = LoggerFactory.getLogger(ZookeeperService.class);
 
-    private CuratorFramework zkClient;
+    private final CuratorFramework zkClient;
 
     public ZookeeperService(String registerAddress) {
         ExponentialBackoffRetry retryPolicy =

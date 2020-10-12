@@ -1,14 +1,17 @@
-package com.cjsff.transport;
+package com.cjsff.serialization;
+
+import com.cjsff.common.annotation.SPI;
 
 /**
- * @author cjsff
+ * @author rick
  */
+@SPI
 public interface Serialization {
 
 
 
     /**
-     * java to binary
+     * java obj to byte
      *
      * @param o
      * @return
@@ -16,7 +19,7 @@ public interface Serialization {
     byte[] serialize(Object o);
 
     /**
-     * binary to java
+     * byte to java obj
      *
      * @param clazz
      * @param bytes
@@ -25,5 +28,9 @@ public interface Serialization {
      */
     <T> T deserialize(byte[] bytes, Class<T> clazz);
 
+    /**
+     * 获取序列化算法类型
+     * @return
+     */
     byte getSerializationAlgorithm();
 }
