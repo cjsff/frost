@@ -14,7 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class HelloController {
 
 
-  @FrpcServiceConsumer(url = "127.0.0.1:10027")
+//  @FrpcServiceConsumer(url = "zookeeper://127.0.0.1:2181")
+  @FrpcServiceConsumer(url = "frpc://127.0.0.1:10027")
   private HelloService helloService;
 
 

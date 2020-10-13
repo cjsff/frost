@@ -1,17 +1,14 @@
 package com.cjsff.client;
 
 import com.cjsff.client.handler.FrpcClientHandler;
-import com.cjsff.client.pool.FrpcPooledChannel;
 import com.cjsff.transport.FrpcRequest;
 import com.cjsff.transport.FrpcResponse;
+import io.netty.channel.Channel;
 import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -21,10 +18,10 @@ import java.util.concurrent.CompletableFuture;
 @SuppressWarnings("unchecked")
 public class FrpcProxy implements MethodInterceptor {
 
-    private final FrpcPooledChannel frpcPooledChannel;
+    private  FrpcClient frpcClient;
 
     public FrpcProxy(FrpcClient frpcClient) {
-        this.frpcPooledChannel = frpcClient.getFrpcPooledChannel();
+        this.frpcClient =frpcClient;
     }
 
     public static <T> T getProxy(Class clazz, FrpcClient frpcClient) {
@@ -44,8 +41,10 @@ public class FrpcProxy implements MethodInterceptor {
 
         FrpcClientHandler handler = new FrpcClientHandler();
 
+        Channel channel = frpcClient.selectChannel(method.getDeclaringClass().getName());
+
         // send request to server
-        CompletableFuture<FrpcResponse<Object>> frpcFuture = handler.send(request,frpcPooledChannel);
+        CompletableFuture<FrpcResponse<Object>> frpcFuture = handler.send(request,channel);
         FrpcResponse<Object> frpcResponse = frpcFuture.get();
 
         return frpcResponse.getResult();

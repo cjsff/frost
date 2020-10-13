@@ -5,6 +5,7 @@ import com.cjsff.client.FrpcClient;
 import com.cjsff.client.FrpcProxy;
 import com.cjsff.common.annotation.FrpcServiceConsumer;
 import com.cjsff.common.annotation.FrpcServiceProvider;
+import com.cjsff.common.annotation.RegistryConstant;
 import com.cjsff.server.FrpcServer;
 import com.cjsff.server.ServiceMap;
 import com.cjsff.springboot.config.FrpcProperties;
@@ -17,9 +18,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Field;
-import java.net.InetSocketAddress;
 
 
 /**
@@ -40,11 +41,6 @@ public class FrpcAutoConfiguration implements BeanPostProcessor {
 
   @Bean
   public FrpcAutoConfiguration FrpcAutoConfiguration() throws InterruptedException {
-    InetSocketAddress serverAddress = new InetSocketAddress(frpcProperties.getIp(), frpcProperties.getPort());
-    if (frpcProperties.isClient()) {
-
-      this.frpcClient = new FrpcClient(serverAddress);
-    }
     if (frpcProperties.isServer()) {
       this.frpcServer = new FrpcServer(frpcProperties.getPort());
     }
@@ -60,9 +56,9 @@ public class FrpcAutoConfiguration implements BeanPostProcessor {
       FrpcServiceProvider frpcServiceProvider = bean.getClass().getAnnotation(FrpcServiceProvider.class);
 
       if (null != frpcServiceProvider) {
-        Class<?> aClass = frpcServiceProvider.interfaceClass();
-        ServiceMap serviceMap = ServiceMap.getInstance();
-        serviceMap.put(aClass.getName(),bean);
+        Class<?> clazz = frpcServiceProvider.interfaceClass();
+
+        frpcServer.addService(clazz.getName(),bean,frpcProperties.getZookeeperAddress());
       }
 
     }
@@ -72,6 +68,9 @@ public class FrpcAutoConfiguration implements BeanPostProcessor {
 
   @Override
   public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+    if (null == frpcClient) {
+      frpcClient = new FrpcClient();
+    }
 
     Class<?> objClz;
     if (AopUtils.isAopProxy(bean)) {
@@ -83,12 +82,30 @@ public class FrpcAutoConfiguration implements BeanPostProcessor {
     Field[] declaredFields = objClz.getDeclaredFields();
     for (Field declaredField : declaredFields) {
 
-      FrpcServiceConsumer rpcReference = declaredField.getAnnotation(FrpcServiceConsumer.class);
+      FrpcServiceConsumer frpcServiceConsumer = declaredField.getAnnotation(FrpcServiceConsumer.class);
 
-      if (null != rpcReference) {
-        if (null == frpcClient) {
-          return bean;
+      if (null != frpcServiceConsumer) {
+
+        String url = frpcServiceConsumer.url();
+
+        if (!StringUtils.isEmpty(url)) {
+
+          String[] split = url.split("://");
+
+          if (RegistryConstant.FRPC.equals(split[0])) {
+
+            frpcClient.initChannelFromServerNodeAddress(split[1],declaredField.getType().getName());
+
+          } else if (RegistryConstant.ZOOKEEPER.equals(split[0])) {
+
+            frpcClient.initChannelFromRegistry(split[1],declaredField.getType().getName());
+
+          }else {
+            throw new RuntimeException("get connection type error,not support " + split[0]);
+          }
+
         }
+
         Object proxy = FrpcProxy.getProxy(declaredField.getType(), frpcClient);
         declaredField.setAccessible(true);
         try {
@@ -101,6 +118,5 @@ public class FrpcAutoConfiguration implements BeanPostProcessor {
     }
     return bean;
   }
-
 
 }

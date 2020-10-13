@@ -15,6 +15,12 @@
 
         <dependency>
             <groupId>com.cjsff</groupId>
+            <artifactId>frost-registry-zookeeper</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.cjsff</groupId>
             <artifactId>frost-serialization-fastjson</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
@@ -63,34 +69,7 @@
             <artifactId>cglib</artifactId>
             <version>3.3.0</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.apache.curator/curator-framework -->
-        <dependency>
-            <groupId>org.apache.curator</groupId>
-            <artifactId>curator-framework</artifactId>
-            <version>4.2.0</version>
-        </dependency>
 
-
-        <!-- https://mvnrepository.com/artifact/org.openjdk.jmh/jmh-core -->
-        <dependency>
-            <groupId>org.openjdk.jmh</groupId>
-            <artifactId>jmh-core</artifactId>
-            <version>1.25.2</version>
-        </dependency>
-
-        <!-- https://mvnrepository.com/artifact/org.openjdk.jmh/jmh-generator-annprocess -->
-        <dependency>
-            <groupId>org.openjdk.jmh</groupId>
-            <artifactId>jmh-generator-annprocess</artifactId>
-            <version>1.25.2</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-context</artifactId>
-            <version>5.2.6.RELEASE</version>
-        </dependency>
 
 
     </dependencies>

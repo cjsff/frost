@@ -1,6 +1,7 @@
 package com.cjsff.transport;
 
 import com.cjsff.serialization.Serialization;
+import com.cjsff.spi.SpiContainer;
 import io.netty.buffer.ByteBuf;
 
 import java.util.HashMap;
@@ -44,11 +45,13 @@ public class PacketCodeC {
     byteBuf.writeInt(MAGIC_NUMBER);
     byteBuf.writeByte(packet.getVersion());
 
-    SerializationManager serializationManager = SerializationManager.getInstance();
 
     byteBuf.writeByte(packetType);
 
-    byte[] bytes = serializationManager.getSerialization().serialize(packet);
+    SpiContainer spiContainer = SpiContainer.INSTANCE;
+    Serialization serialization = (Serialization) spiContainer.get(Serialization.class.getName());
+
+    byte[] bytes = serialization.serialize(packet);
     byteBuf.writeInt(bytes.length);
     byteBuf.writeBytes(bytes);
   }
@@ -70,9 +73,8 @@ public class PacketCodeC {
     byte[] bytes = new byte[length];
     byteBuf.readBytes(bytes);
 
-    SerializationManager serializationManager = SerializationManager.getInstance();
-
-    Serialization serialization = serializationManager.getSerialization();
+    SpiContainer spiContainer = SpiContainer.INSTANCE;
+    Serialization serialization = (Serialization) spiContainer.get(Serialization.class.getName());
 
     if (serialization != null) {
       return serialization.deserialize(bytes, packetTypeMap.get(packetType));

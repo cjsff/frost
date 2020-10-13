@@ -1,8 +1,9 @@
 package com.cjsff.client;
 
 import com.cjsff.client.handler.FrpcClientHandler;
-import com.cjsff.client.pool.FrpcPooledChannel;
-import com.cjsff.spi.SerializationSpiManager;
+import com.cjsff.client.loadbalance.LoadBalanceStrategy;
+import com.cjsff.registry.ServiceRegisterDiscovery;
+import com.cjsff.spi.SpiContainer;
 import com.cjsff.transport.codec.PacketCodecHandler;
 import com.cjsff.transport.codec.Spliter;
 import io.netty.bootstrap.Bootstrap;
@@ -14,10 +15,15 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import net.sf.cglib.beans.BeanCopier;
+import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author rick
@@ -26,35 +32,17 @@ public class FrpcClient {
 
     private static final Logger log = LoggerFactory.getLogger(FrpcClient.class);
 
-    private FrpcClientOption frpcClientOption = new FrpcClientOption();
-    private FrpcPooledChannel frpcPooledChannel;
-    private Bootstrap bootstrap;
+    private final FrpcClientOption frpcClientOption = new FrpcClientOption();
 
-    public FrpcClient(InetSocketAddress serverAddress) {
-        this(serverAddress, null, null);
+    private final Map<String, List<Channel>> serviceNameToChannelListMap = new ConcurrentHashMap<>();
+
+    private final Bootstrap bootstrap;
+
+    public FrpcClient() {
+        this(null);
     }
 
-    public FrpcClient(InetSocketAddress serverAddress, FrpcClientOption option) {
-        this(serverAddress, option, null);
-    }
-
-    public FrpcClient(String zkAddress) {
-        this(null, null, zkAddress);
-    }
-
-    public FrpcClient(FrpcClientOption option, String zkAddress) {
-        this(null, option, zkAddress);
-    }
-
-
-    public FrpcClient(InetSocketAddress serverAddress, FrpcClientOption option, String zkAddress) {
-
-        if (serverAddress != null) {
-            log.info("serverAddress is :" + serverAddress);
-            frpcPooledChannel = new FrpcPooledChannel(serverAddress, this);
-        } else {
-            frpcPooledChannel = new FrpcPooledChannel(zkAddress, this);
-        }
+    public FrpcClient(FrpcClientOption option) {
 
         if (option != null) {
             BeanCopier copier = BeanCopier.create(FrpcClientOption.class, FrpcClientOption.class, false);
@@ -87,7 +75,7 @@ public class FrpcClient {
                 ch.pipeline().addLast(new FrpcClientHandler());
             }
         });
-        SerializationSpiManager.getInstance().loadSerialization();
+        SpiContainer.getInstance().load(false);
     }
 
     public Channel getConnect(InetSocketAddress serverAddress) throws InterruptedException {
@@ -107,13 +95,63 @@ public class FrpcClient {
         return future.channel();
     }
 
-    public FrpcPooledChannel getFrpcPooledChannel() {
-        return frpcPooledChannel;
-    }
 
     public FrpcClientOption getFrpcClientOption() {
         return frpcClientOption;
     }
+
+    public void initChannelFromServerNodeAddress(String serverNodeAddress,String serviceName) {
+
+        addChannel(serviceName,serverNodeAddress);
+
+    }
+
+    public void initChannelFromRegistry(String registryAddress, String serviceName) {
+
+        ServiceRegisterDiscovery serviceRegisterDiscovery =
+                (ServiceRegisterDiscovery) SpiContainer.getInstance().get(ServiceRegisterDiscovery.class.getName());
+
+        serviceRegisterDiscovery.start(registryAddress);
+
+        List<String> discovery = serviceRegisterDiscovery.discovery(serviceName);
+
+        for (String address : discovery) {
+
+           addChannel(serviceName,address);
+
+        }
+    }
+
+    private void addChannel(String serviceName, String address) {
+        String[] split = address.split(":");
+
+        try {
+            ChannelFuture future = bootstrap.connect(split[0], Integer.parseInt(split[1])).sync();
+
+            List<Channel> channelList = serviceNameToChannelListMap.get(serviceName);
+
+            if (CollectionUtils.isEmpty(channelList)) {
+                channelList = new ArrayList<>();
+            }
+
+            channelList.add(future.channel());
+
+            serviceNameToChannelListMap.put(serviceName, channelList);
+
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public Channel selectChannel(String serviceName) {
+
+        SpiContainer spiContainer = SpiContainer.INSTANCE;
+
+        LoadBalanceStrategy loadBalanceStrategy = (LoadBalanceStrategy) spiContainer.get(LoadBalanceStrategy.class.getName());
+
+        return loadBalanceStrategy.select(serviceNameToChannelListMap,serviceName);
+    }
+
 
 }
 
