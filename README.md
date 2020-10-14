@@ -12,11 +12,14 @@ Java8 && maven3
 #### API 启动方式
 ##### Server端
 1.通过指定端口完成初始化
+<br/>
 2.服务注册,如果要使用服务注册发现功能添加zookeeper地址即可
 
 ##### Client端
 1.初始化
+<br/>
 2.通过Server端地址/zookeeper地址和调用类名称获取Channel连接
+<br/>
 3.获取调用类代理对象
 ```java
 @Test
