@@ -32,10 +32,8 @@ public class FrpcServerHandler extends SimpleChannelInboundHandler<Object> {
     FrpcResponse<Object> response = new FrpcResponse<>();
     response.setId(request.getId());
     response.setResult(result);
-    ByteBuf out = ctx.alloc().ioBuffer();
-    PacketCodeC packetCodeC = PacketCodeC.INSTANCE;
-    packetCodeC.encode(out, response);
-    ctx.channel().writeAndFlush(out);
+
+    ctx.channel().writeAndFlush(response);
   }
 
 

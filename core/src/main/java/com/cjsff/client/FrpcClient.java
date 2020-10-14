@@ -42,11 +42,9 @@ public class FrpcClient {
     if (Epoll.isAvailable()) {
       work = new EpollEventLoopGroup(1, workThreadFactory);
       bootstrap.channel(EpollSocketChannel.class);
-      log.info("use epoll edge trigger model");
     } else {
       work = new NioEventLoopGroup(1, workThreadFactory);
       bootstrap.channel(NioSocketChannel.class);
-      log.info("use normal model");
     }
     bootstrap.group(work)
             .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 3000)

@@ -40,13 +40,8 @@ public class FrpcClientHandler extends SimpleChannelInboundHandler<Object> {
     // put the asynchronous request into the pending request container
     frpcFuture.put(request.getId(), completableFuture);
 
-    ByteBuf buf = channel.alloc().ioBuffer();
-    PacketCodeC instance = PacketCodeC.INSTANCE;
-
-    // request data serialization,encoding and writing to ByteBuf
-    instance.encode(buf, request);
     if (channel.isActive()) {
-      channel.writeAndFlush(buf).addListener((ChannelFutureListener) channelFuture -> {
+      channel.writeAndFlush(request).addListener((ChannelFutureListener) channelFuture -> {
         if (channelFuture.isSuccess()) {
           // request sent successfully
         } else {
