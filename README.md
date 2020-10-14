@@ -1,3 +1,4 @@
+![Build Status](https://travis-ci.org/cjsff/frost.svg?branch=master)
 # 核心功能
 * 支持spring-boot-starter 启动
 * RPC功能可独立使用,不用必须依赖注册中心功能
