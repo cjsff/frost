@@ -12,6 +12,7 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * Client request sending, response processing
+ *
  * @author rick
  */
 public class FrpcClientHandler extends SimpleChannelInboundHandler<Object> {

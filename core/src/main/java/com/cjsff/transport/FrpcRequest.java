@@ -12,9 +12,9 @@ import lombok.*;
 @NoArgsConstructor
 @ToString
 public class FrpcRequest extends BasePacket {
-    private String id;
-    private String className;
-    private String methodName;
-    private Class<?>[] paramTypes;
-    private Object[] params;
+  private String id;
+  private String className;
+  private String methodName;
+  private Class<?>[] paramTypes;
+  private Object[] params;
 }

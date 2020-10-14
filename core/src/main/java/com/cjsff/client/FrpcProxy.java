@@ -18,35 +18,35 @@ import java.util.concurrent.CompletableFuture;
 @SuppressWarnings("unchecked")
 public class FrpcProxy implements MethodInterceptor {
 
-    private  FrpcClient frpcClient;
+  private FrpcClient frpcClient;
 
-    public FrpcProxy(FrpcClient frpcClient) {
-        this.frpcClient =frpcClient;
-    }
+  public FrpcProxy(FrpcClient frpcClient) {
+    this.frpcClient = frpcClient;
+  }
 
-    public static <T> T getProxy(Class clazz, FrpcClient frpcClient) {
-        Enhancer enhancer = new Enhancer();
-        enhancer.setSuperclass(clazz);
-        enhancer.setCallback(new FrpcProxy(frpcClient));
-        return (T) enhancer.create();
-    }
+  public static <T> T getProxy(Class clazz, FrpcClient frpcClient) {
+    Enhancer enhancer = new Enhancer();
+    enhancer.setSuperclass(clazz);
+    enhancer.setCallback(new FrpcProxy(frpcClient));
+    return (T) enhancer.create();
+  }
 
-    @Override
-    public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {
+  @Override
+  public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {
 
-        // assembly request messages
-        String requestId = UUID.randomUUID().toString();
-        FrpcRequest request = new FrpcRequest(requestId, method.getDeclaringClass().getName(),
-                method.getName(), method.getParameterTypes(), args);
+    // assembly request messages
+    String requestId = UUID.randomUUID().toString();
+    FrpcRequest request = new FrpcRequest(requestId, method.getDeclaringClass().getName(),
+            method.getName(), method.getParameterTypes(), args);
 
-        FrpcClientHandler handler = new FrpcClientHandler();
+    FrpcClientHandler handler = new FrpcClientHandler();
 
-        Channel channel = frpcClient.selectChannel(method.getDeclaringClass().getName());
+    Channel channel = frpcClient.selectChannel(method.getDeclaringClass().getName());
 
-        // send request to server
-        CompletableFuture<FrpcResponse<Object>> frpcFuture = handler.send(request,channel);
-        FrpcResponse<Object> frpcResponse = frpcFuture.get();
+    // send request to server
+    CompletableFuture<FrpcResponse<Object>> frpcFuture = handler.send(request, channel);
+    FrpcResponse<Object> frpcResponse = frpcFuture.get();
 
-        return frpcResponse.getResult();
-    }
+    return frpcResponse.getResult();
+  }
 }

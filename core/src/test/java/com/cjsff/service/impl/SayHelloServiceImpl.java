@@ -9,8 +9,9 @@ import java.util.List;
  * @author rick
  */
 public class SayHelloServiceImpl implements SayHelloService {
-    @Override
-    public List<String> sayHello(List<String> strings) {
-        return strings;
-    }
+
+  @Override
+  public String sayHello(String name) {
+    return "hello," + name;
+  }
 }

@@ -64,7 +64,7 @@ public class ZookeeperHandler implements ServiceRegisterDiscovery {
 
     try {
       nodes = client.getChildren().forPath(serviceNamePath);
-      interfaceNameToNodesMap.put(serviceName,nodes);
+      interfaceNameToNodesMap.put(serviceName, nodes);
     } catch (Exception e) {
       e.printStackTrace();
     }

@@ -13,7 +13,7 @@ import lombok.Setter;
 @Getter
 @NoArgsConstructor
 public class FrpcResponse<T> extends BasePacket {
-    private String id;
-    private T result;
-    private String error;
+  private String id;
+  private T result;
+  private String error;
 }

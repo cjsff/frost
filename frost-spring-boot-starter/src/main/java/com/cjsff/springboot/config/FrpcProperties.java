@@ -13,6 +13,5 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class FrpcProperties {
   private int port;
   private boolean server;
-  private boolean client;
   private String zookeeperAddress;
 }

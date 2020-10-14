@@ -22,7 +22,7 @@ public class SpiContainer {
 
   private final Map<String, Object> interfaceNameToImplObjMap = new HashMap<>(10);
 
-  private static final List<Class<?>> SPI_INTERFACE_LIST = new ArrayList<Class<?>>(){{
+  private static final List<Class<?>> SPI_INTERFACE_LIST = new ArrayList<Class<?>>() {{
     add(ServiceRegisterDiscovery.class);
     add(Serialization.class);
     add(LoadBalanceStrategy.class);

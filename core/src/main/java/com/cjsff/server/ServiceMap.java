@@ -13,7 +13,7 @@ public class ServiceMap {
 
   public static ServiceMap serviceMap = new ServiceMap();
 
-  private Map<String, Object> objectMap = new HashMap<>();
+  private final Map<String, Object> objectMap = new HashMap<>();
 
   public static ServiceMap getInstance() {
     return serviceMap;

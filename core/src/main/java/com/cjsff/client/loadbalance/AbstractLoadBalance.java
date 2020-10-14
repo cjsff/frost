@@ -9,21 +9,22 @@ import java.util.Map;
 
 /**
  * 负载均衡策略抽象类
+ *
  * @author rick
  */
 public abstract class AbstractLoadBalance implements LoadBalanceStrategy {
 
-    @Override
-    public Channel select(Map<String, List<Channel>> serviceNameToClientListMap, String serviceName) {
-        if (MapUtils.isEmpty(serviceNameToClientListMap)) {
-            return null;
-        }
-        List<Channel> channelList = serviceNameToClientListMap.get(serviceName);
-        if (CollectionUtils.isEmpty(channelList)) {
-            return null;
-        }
-        return doSelect(channelList);
+  @Override
+  public Channel select(Map<String, List<Channel>> serviceNameToClientListMap, String serviceName) {
+    if (MapUtils.isEmpty(serviceNameToClientListMap)) {
+      return null;
     }
+    List<Channel> channelList = serviceNameToClientListMap.get(serviceName);
+    if (CollectionUtils.isEmpty(channelList)) {
+      return null;
+    }
+    return doSelect(channelList);
+  }
 
-    protected abstract Channel doSelect(List<Channel> channelList);
+  protected abstract Channel doSelect(List<Channel> channelList);
 }

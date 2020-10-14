@@ -13,8 +13,6 @@ import java.io.ByteArrayOutputStream;
  */
 public class KryoSerializer implements Serialization {
 
-  private static final byte KRYO_SERIALIZER_TYPE = 2;
-
   private final ThreadLocal<Kryo> kryoThreadLocal = ThreadLocal.withInitial(Kryo::new);
 
 
@@ -55,8 +53,4 @@ public class KryoSerializer implements Serialization {
     }
   }
 
-  @Override
-  public byte getSerializationAlgorithm() {
-    return KRYO_SERIALIZER_TYPE;
-  }
 }

@@ -11,6 +11,7 @@ public class SpiUtil {
 
   /**
    * Load the service according to the specified interface
+   *
    * @param clazz interface class
    * @return interface class implement
    */

@@ -8,8 +8,6 @@ import com.cjsff.serialization.Serialization;
  */
 public class FastJsonSerializer implements Serialization {
 
-    private static final byte FAST_JSON_SERIALIZER_TYPE = 1;
-
     @Override
     public byte[] serialize(Object o) {
         return JSON.toJSONBytes(o);
@@ -20,8 +18,4 @@ public class FastJsonSerializer implements Serialization {
         return JSON.parseObject(bytes, clazz);
     }
 
-    @Override
-    public byte getSerializationAlgorithm() {
-        return FAST_JSON_SERIALIZER_TYPE;
-    }
 }

@@ -14,21 +14,21 @@ import java.util.List;
  */
 @ChannelHandler.Sharable
 public class PacketCodecHandler extends MessageToMessageCodec<ByteBuf, BasePacket> {
-    public static final PacketCodecHandler INSTANCE = new PacketCodecHandler();
+  public static final PacketCodecHandler INSTANCE = new PacketCodecHandler();
 
-    private PacketCodecHandler() {
+  private PacketCodecHandler() {
 
-    }
+  }
 
-    @Override
-    protected void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> out) {
-        out.add(PacketCodeC.INSTANCE.decode(byteBuf));
-    }
+  @Override
+  protected void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> out) {
+    out.add(PacketCodeC.INSTANCE.decode(byteBuf));
+  }
 
-    @Override
-    protected void encode(ChannelHandlerContext ctx, BasePacket packet, List<Object> out) {
-        ByteBuf byteBuf = ctx.channel().alloc().ioBuffer();
-        PacketCodeC.INSTANCE.encode(byteBuf, packet);
-        out.add(byteBuf);
-    }
+  @Override
+  protected void encode(ChannelHandlerContext ctx, BasePacket packet, List<Object> out) {
+    ByteBuf byteBuf = ctx.channel().alloc().ioBuffer();
+    PacketCodeC.INSTANCE.encode(byteBuf, packet);
+    out.add(byteBuf);
+  }
 }

@@ -11,5 +11,12 @@
 
     <artifactId>frost-registry-api</artifactId>
 
+    <dependencies>
+        <dependency>
+            <groupId>com.cjsff</groupId>
+            <artifactId>frost-common</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
 
 </project>

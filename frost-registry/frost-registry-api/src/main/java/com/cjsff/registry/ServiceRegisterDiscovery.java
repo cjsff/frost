@@ -1,14 +1,18 @@
 package com.cjsff.registry;
 
+import com.cjsff.common.annotation.SPI;
+
 import java.util.List;
 
 /**
  * @author rick
  */
+@SPI
 public interface ServiceRegisterDiscovery {
 
   /**
    * Service discovery
+   *
    * @param serviceName
    * @return Service provider node  ip:port
    */
@@ -17,14 +21,16 @@ public interface ServiceRegisterDiscovery {
 
   /**
    * Service registered
+   *
    * @param serviceName
    * @param host
    * @param port
    */
-  void registered(String serviceName,String host,int port);
+  void registered(String serviceName, String host, int port);
 
   /**
    * Service registration client start
+   *
    * @param address Registered address
    */
   void start(String address);

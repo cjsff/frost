@@ -7,7 +7,6 @@ import com.cjsff.common.annotation.FrpcServiceConsumer;
 import com.cjsff.common.annotation.FrpcServiceProvider;
 import com.cjsff.common.annotation.RegistryConstant;
 import com.cjsff.server.FrpcServer;
-import com.cjsff.server.ServiceMap;
 import com.cjsff.springboot.config.FrpcProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.aop.support.AopUtils;
@@ -58,7 +57,7 @@ public class FrpcAutoConfiguration implements BeanPostProcessor {
       if (null != frpcServiceProvider) {
         Class<?> clazz = frpcServiceProvider.interfaceClass();
 
-        frpcServer.addService(clazz.getName(),bean,frpcProperties.getZookeeperAddress());
+        frpcServer.addService(clazz.getName(), bean, frpcProperties.getZookeeperAddress());
       }
 
     }
@@ -94,13 +93,13 @@ public class FrpcAutoConfiguration implements BeanPostProcessor {
 
           if (RegistryConstant.FRPC.equals(split[0])) {
 
-            frpcClient.initChannelFromServerNodeAddress(split[1],declaredField.getType().getName());
+            frpcClient.initChannelFromServerNodeAddress(split[1], declaredField.getType().getName());
 
           } else if (RegistryConstant.ZOOKEEPER.equals(split[0])) {
 
-            frpcClient.initChannelFromRegistry(split[1],declaredField.getType().getName());
+            frpcClient.initChannelFromRegistry(split[1], declaredField.getType().getName());
 
-          }else {
+          } else {
             throw new RuntimeException("get connection type error,not support " + split[0]);
           }
 
